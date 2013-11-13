@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="200.0" prefWidth="320.0" xmlns:fx="http://javafx.com/fxml" fx:controller="exeamusicplayer.ExeaMusicPlayerController">
+  <children>
+    <HBox prefHeight="50.0" prefWidth="296.0" spacing="10.0" AnchorPane.bottomAnchor="14.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="136.0">
+      <children>
+        <ImageView id="prev" fx:id="prevButton" fitHeight="50.0" fitWidth="50.0" pickOnBounds="true">
+          <image>
+            <Image url="@../../img/prev.png" preserveRatio="true" smooth="true" />
+          </image>
+        </ImageView>
+        <ImageView id="stop" fx:id="stopButton" fitHeight="50.0" fitWidth="50.0" pickOnBounds="true">
+          <image>
+            <Image url="@../../img/stop.png" preserveRatio="true" smooth="true" />
+          </image>
+        </ImageView>
+        <ImageView id="pause" fx:id="pauseButton" fitHeight="50.0" fitWidth="50.0" pickOnBounds="true">
+          <image>
+            <Image url="@../../img/pause.png" preserveRatio="true" smooth="true" />
+          </image>
+        </ImageView>
+        <ImageView id="play" fx:id="playButtonImg" fitHeight="50.0" fitWidth="50.0" onMouseClicked="#playClicked" pickOnBounds="true">
+          <image>
+            <Image url="@../../img/play.png" preserveRatio="true" smooth="true" />
+          </image>
+        </ImageView>
+        <ImageView id="next" fx:id="nextButton" fitHeight="50.0" fitWidth="50.0" pickOnBounds="true">
+          <image>
+            <Image url="@../../img/next.png" preserveRatio="true" smooth="true" />
+          </image>
+        </ImageView>
+      </children>
+    </HBox>
+    <VBox id="VBox" alignment="CENTER_LEFT" layoutX="134.0" layoutY="20.0" spacing="5.0">
+      <children>
+        <Label text="Tittle:" />
+        <Label text="Label" />
+        <Label text="Duration:" />
+        <Label text="Author:" />
+        <Label text="Album: " />
+      </children>
+    </VBox>
+    <ImageView id="cover" fx:id="coverImage" fitHeight="106.0" fitWidth="106.0" layoutX="14.0" layoutY="14.0" pickOnBounds="true">
+      <image>
+        <Image url="@../../img/cover.png" preserveRatio="true" smooth="true" />
+      </image>
+    </ImageView>
+    <Button fx:id="playButton" layoutX="224.0" layoutY="33.0" mnemonicParsing="false" onMouseClicked="#playClicked" text="Button" />
+  </children>
+</AnchorPane>
