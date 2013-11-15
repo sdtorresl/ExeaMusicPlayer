@@ -5,6 +5,7 @@
 package player;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -18,7 +19,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
-//import javafx.scene.image.Image;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.util.Duration;
 
@@ -35,23 +36,21 @@ import javafx.stage.FileChooser;
  * @author sdtorresl
  */
 public class PlayerController implements Initializable {
-    private static String MEDIA_URL = 
-            System.getProperty("user.home")+"/Music/AC_DC/Hits/08 - T.N.T..mp3";
-    //private static String RESCUE_URL = "http://stream";
-    private static String RESCUE_URL = "http://radio.zaycev.fm:9002/ZaycevFM(128)";
-    
+    private static String MEDIA_URL = "/tmp/stream.mp3";
+    private static String RESCUE_URL = "http://stream.exeamedia.com/farmatodotest.mp3";
+    private File audioFile;
     private static final int DELAY_TIME = 4000;
     
-    //private FileOutputStream file;
     private static Media media;
     private MediaPlayer mediaPlayer;
+    private Boolean mute, play;
     
     @FXML
     public Label tittle, artist, album;
     public ProgressBar progress;
-    public Button playPauseButton, playBackupButton, backupButton;
+    public Button playPauseButton, playBackupButton, backupButton, muteButton;
     public Slider volumeSlider;
-    
+    public ImageView playPauseImage, muteImage;
     /** 
      * Makes an animation that reduces the opacity of an element and 
      * restores it at a specific time.
@@ -96,13 +95,19 @@ public class PlayerController implements Initializable {
     @FXML
     public void playPauseButtonClicked(ActionEvent event) {
         setMetadata();
-        
-        mediaPlayer.play();
+        if(!play) {
+            mediaPlayer.play();
+            //playPauseImage.setImage(new Image("@pause.png"));
+            play = true;
+        }
+        else {
+            mediaPlayer.pause();
+            //playPauseImage.setImage(new Image("@play.png"));
+            play = false;
+        }
         fade(playPauseButton);
     }
    
-    
-    
     @FXML
     public void playBackupButtonClicked(ActionEvent event) {
         setMetadata();
@@ -111,8 +116,15 @@ public class PlayerController implements Initializable {
     
     @FXML
     public void muteButtonClicked(ActionEvent event) {
-        setMetadata();
-        fade(playBackupButton);
+        if(!mute) {
+            mediaPlayer.setMute(true);
+            mute = true;
+        }
+        else {
+            mediaPlayer.setMute(false);
+            mute = false;
+        }
+        fade(muteButton);
     }
     
     @FXML
@@ -145,16 +157,25 @@ public class PlayerController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        
+        try {
+            audioFile = File.createTempFile("stream.mp3", null);
+        } catch (IOException ex) {
+            Logger.getLogger(PlayerController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
         // Create media player
-        File audioFile = new File(MEDIA_URL);
+        audioFile = new File(MEDIA_URL);
+        audioFile.deleteOnExit();
         FetchStreamBytes fsb = new FetchStreamBytes(MEDIA_URL, RESCUE_URL);
         Thread t = new Thread(fsb);
         t.start();
         media = null;
-               
+        
         try {
             Thread.sleep(DELAY_TIME);
-        } catch (InterruptedException ex) {   
+        } catch (InterruptedException ex) {
+            Logger.getLogger(PlayerController.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         try {
@@ -163,16 +184,12 @@ public class PlayerController implements Initializable {
             mediaPlayer = new MediaPlayer(media);
             mediaPlayer.setAutoPlay(false);
         } catch (MalformedURLException e) {
-            System.out.println("MalformedURLException");
+            Logger.getLogger(PlayerController.class.getName()).log(Level.SEVERE, null, e);
         }
        
-        tittle.setText(Double.toString(volumeSlider.getValue()));
-        /*
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException ex) {
-        }
-        */
+        //tittle.setText(Double.toString(volumeSlider.getValue()));
+        mute = false;
+        play = false;
         
         //fsb.stopExecuting();    
     }    
@@ -188,7 +205,7 @@ public class PlayerController implements Initializable {
             String a = chooser.showSaveDialog(null).getAbsolutePath();
             return a;
         }catch(Exception e) {
-            e.printStackTrace();
+            Logger.getLogger(PlayerController.class.getName()).log(Level.SEVERE, null, e);
         }
         
         return null;
