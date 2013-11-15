@@ -110,12 +110,9 @@ public class FetchStreamBytes implements Runnable {
                     /** Printing out our title **/
                     this.metadata = new String(titleBuffer);
                     pc.setMetadata();
-                    System.out.println(this.metadata);
                 }
                 fos.write(audioBuffer);
-                System.out.println(">>>fetching");
             }
-            System.out.println("Out of loop!");
             // following operations are supossed to be done in the main thread
             fos.flush();
             fos.close();
@@ -145,7 +142,6 @@ public class FetchStreamBytes implements Runnable {
             this.tF = tF;
             this.fos = fos;
             this.execute = true;
-            System.out.println(">>>>> New counter: " + value);
         }
         
         @Override
@@ -159,7 +155,6 @@ public class FetchStreamBytes implements Runnable {
                 if (value >= READ_TIMEOUT)  recover();
                 else                        value += STEP;
             }
-            System.out.println("--- stop");
         }
         
         public void stopExec(){
@@ -167,11 +162,9 @@ public class FetchStreamBytes implements Runnable {
         }
         
         public void recover (){     
-            System.out.println(">>count value: " + value);
             MediaPlayer mp = pc.getMediaPlayer();
             if (mp != null)  {
                 mp.stop();
-                System.out.println("><><>Mp NO es nulo (stop)");
             }
             tF.delete();
             tF = new File (tempFile);
@@ -190,7 +183,6 @@ public class FetchStreamBytes implements Runnable {
             if (mp != null){
                 
                 mp.play();
-                System.out.println("><><>Mp NO es nulo (play)");
             }
             // PLAY AGAIN
         }

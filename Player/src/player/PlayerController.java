@@ -50,7 +50,6 @@ public class PlayerController implements Initializable {
     private MediaPlayer mediaPlayer;
     private Boolean mute, play, rescuePlay;
     
-    private File audioFile;
     private FetchStreamBytes fsb;
     private Thread t;
     
@@ -108,8 +107,6 @@ public class PlayerController implements Initializable {
             artistLabel = md.substring(13, n-1).trim();
             tittleLabel = md.substring(n+1, md.length()-6).trim();
         }
-        
-        System.out.println("-+-+-+ Titulo, autor: " + tittleLabel + " -.- " + artistLabel);
 
         //System.out.println(albumCover.toString());
         /*if(artistLabel.equals(""))
@@ -121,8 +118,8 @@ public class PlayerController implements Initializable {
         if(artistLabel.equals(""))  
             albumLabel = "Desconocido";*/
 
-        String artistLabel = (String) media.getMetadata().get("artist");
-        String tittleLabel = (String) media.getMetadata().get("title");
+        //String artistLabel = (String) media.getMetadata().get("artist");
+        //String tittleLabel = (String) media.getMetadata().get("title");
 
         
         //Set metadata values

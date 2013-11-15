@@ -39,34 +39,20 @@
               <children>
                 <VBox prefHeight="200.0" prefWidth="50.0">
                   <children>
-<<<<<<< HEAD
-                    <Button id="playButton" fx:id="playPauseButton" onAction="#playPauseButtonClicked">
-                      <graphic>
-                        <ImageView fitHeight="20.0" fitWidth="20.0">
-                          <Image url="@play.png" />
-=======
                     <Button fx:id="playPauseButton" onAction="#playPauseButtonClicked">
                       <graphic>
                         <ImageView id="playPauseImageView" fitHeight="20.0" fitWidth="20.0">
                           <Image url="@play.png" fx:id="playPauseImage" />
->>>>>>> 1d87348648246452c4516c6281b0cf2cac337c73
                         </ImageView>
                       </graphic>
                       <VBox.margin>
                         <Insets />
                       </VBox.margin>
                     </Button>
-<<<<<<< HEAD
-                    <Button id="pauseButton" fx:id="muteButton" onAction="#muteButtonClicked">
-                      <graphic>
-                        <ImageView fitHeight="20.0" fitWidth="20.0">
-                          <Image url="@mute.png" />
-=======
                     <Button fx:id="muteButton" onAction="#muteButtonClicked">
                       <graphic>
                         <ImageView id="muteImageView" fitHeight="20.0" fitWidth="20.0">
                           <Image url="@mute.png" fx:id="muteImage" />
->>>>>>> 1d87348648246452c4516c6281b0cf2cac337c73
                         </ImageView>
                       </graphic>
                       <VBox.margin>
