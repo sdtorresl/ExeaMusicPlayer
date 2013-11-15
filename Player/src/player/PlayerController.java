@@ -6,6 +6,8 @@ package player;
 
 import java.io.File;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import javafx.animation.*;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -22,6 +24,8 @@ import javafx.util.Duration;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.stage.FileChooser;
@@ -31,10 +35,13 @@ import javafx.stage.FileChooser;
  * @author sdtorresl
  */
 public class PlayerController implements Initializable {
-    
     private static String MEDIA_URL = 
             System.getProperty("user.home")+"/Music/AC_DC/Hits/08 - T.N.T..mp3";
-    private static String RESCUE_URL = "http://stream";
+    //private static String RESCUE_URL = "http://stream";
+    private static String RESCUE_URL = "http://radio.zaycev.fm:9002/ZaycevFM(128)";
+    
+    private static final int DELAY_TIME = 4000;
+    
     //private FileOutputStream file;
     private static Media media;
     private MediaPlayer mediaPlayer;
@@ -76,7 +83,7 @@ public class PlayerController implements Initializable {
         if(albumLabel.equals(""))
             albumLabel = "Desconocido";
         
-        if(artistLabel.equals(""))
+        if(artistLabel.equals(""))  
             albumLabel = "Desconocido";*/
         
         //Set metadata values
@@ -94,6 +101,8 @@ public class PlayerController implements Initializable {
         fade(playPauseButton);
     }
    
+    
+    
     @FXML
     public void playBackupButtonClicked(ActionEvent event) {
         setMetadata();
@@ -131,14 +140,22 @@ public class PlayerController implements Initializable {
         artist.setText("");
         album.setText("");
         mediaPlayer.pause();
-        fade(pauseButton);
+        fade(playPauseButton);
     }
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // Create media player
         File audioFile = new File(MEDIA_URL);
+        FetchStreamBytes fsb = new FetchStreamBytes(MEDIA_URL, RESCUE_URL);
+        Thread t = new Thread(fsb);
+        t.start();
         media = null;
+               
+        try {
+            Thread.sleep(DELAY_TIME);
+        } catch (InterruptedException ex) {   
+        }
         
         try {
             MEDIA_URL = audioFile.toURI().toURL().toString();
@@ -150,6 +167,14 @@ public class PlayerController implements Initializable {
         }
        
         tittle.setText(Double.toString(volumeSlider.getValue()));
+        /*
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException ex) {
+        }
+        */
+        
+        //fsb.stopExecuting();    
     }    
     
     public String saveFile(){
