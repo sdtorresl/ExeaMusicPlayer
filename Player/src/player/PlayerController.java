@@ -1,3 +1,4 @@
+
 /*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
@@ -48,11 +49,20 @@ public class PlayerController implements Initializable {
     private MediaPlayer mediaPlayer;
     private Boolean mute, playing, backupPlaying;
     
+    private FetchStreamBytes fsb;
+    private Thread t;
+    
     @FXML
     public Label tittle, artist, album;
     public ProgressBar progress;
     public Button playPauseButton, playBackupButton, backupButton, muteButton;
     public Slider volumeSlider;
+
+    public MediaPlayer getMediaPlayer(){
+        return mediaPlayer;
+    }
+    
+
     public ImageView playPauseImageView, muteImageView;
     /** 
      * Makes an animation that reduces the opacity of an element and 
@@ -75,9 +85,47 @@ public class PlayerController implements Initializable {
      * labels of the player.
      */
     public void setMetadata() {
+        String artistLabel;
+        String tittleLabel;
+        
+        int n;
         //Get metadata from media
-        String artistLabel = (String) media.getMetadata().get("artist");
-        String tittleLabel = (String) media.getMetadata().get("title");
+
+        //String artistLabel = (String) media.getMetadata().get("artist");
+        //String tittleLabel = (String) media.getMetadata().get("title");
+        
+        
+        String md = fsb.getMetadata();
+        
+        
+        System.out.println("+a+a+a+:    " + md);
+        
+        
+        n = md.indexOf('-');
+        
+        if (md == null || n == -1){
+            artistLabel = "Unknown";
+            tittleLabel = "Unknown";
+        }
+        
+        else {
+            artistLabel = md.substring(13, n-1).trim();
+            tittleLabel = md.substring(n+1, md.length()-6).trim();
+        }
+
+        //System.out.println(albumCover.toString());
+        /*if(artistLabel.equals(""))
+            artistLabel = "Desconocido";
+        
+        if(albumLabel.equals(""))
+            albumLabel = "Desconocido";
+        
+        if(artistLabel.equals(""))  
+            albumLabel = "Desconocido";*/
+
+        //String artistLabel = (String) media.getMetadata().get("artist");
+        //String tittleLabel = (String) media.getMetadata().get("title");
+
         
         //Set metadata values
         tittle.setText(tittleLabel);
@@ -160,7 +208,7 @@ public class PlayerController implements Initializable {
             return -1;
         }
         
-        System.out.println("The path to save the rescue file is " + pathToSave);
+            System.out.println("The path to save the rescue file is " + pathToSave);
         
         try {
             saveUrl(pathToSave, BACKUP_URL);
@@ -191,13 +239,15 @@ public class PlayerController implements Initializable {
         }
         
         // Create media player
+
         audioFile = new File(MEDIA_URL);
         audioFile.deleteOnExit();
-        FetchStreamBytes fsb = new FetchStreamBytes(MEDIA_URL, STREAM_URL);
-        Thread t = new Thread(fsb);
+
+       	fsb =  new FetchStreamBytes(MEDIA_URL, STREAM_URL, this);
+        t = new Thread(fsb);
         t.start();
         media = null;
-        
+       
         try {
             Thread.sleep(DELAY_TIME);
         } catch (InterruptedException ex) {
@@ -207,6 +257,7 @@ public class PlayerController implements Initializable {
         try {
             MEDIA_URL = audioFile.toURI().toURL().toString();
             media = new Media(MEDIA_URL);
+
             mediaPlayer = new MediaPlayer(media);
             mediaPlayer.setAutoPlay(false);
         } catch (MalformedURLException e) {
