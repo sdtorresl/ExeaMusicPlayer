@@ -4,7 +4,9 @@
  */
 package player;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -27,9 +29,11 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.HostServices;
 import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.stage.FileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
  *
@@ -38,19 +42,19 @@ import javafx.stage.FileChooser;
 public class PlayerController implements Initializable {
     private static String MEDIA_URL = "/tmp/stream.mp3";
     private static String RESCUE_URL = "http://stream.exeamedia.com/farmatodotest.mp3";
-    private File audioFile;
+    private File audioFile, rescueFile;
     private static final int DELAY_TIME = 4000;
     
-    private static Media media;
+    private static Media media, rescueMedia;
     private MediaPlayer mediaPlayer;
-    private Boolean mute, play;
+    private Boolean mute, play, rescuePlay;
     
     @FXML
     public Label tittle, artist, album;
     public ProgressBar progress;
     public Button playPauseButton, playBackupButton, backupButton, muteButton;
     public Slider volumeSlider;
-    public ImageView playPauseImage, muteImage;
+    public ImageView playPauseImageView, muteImageView;
     /** 
      * Makes an animation that reduces the opacity of an element and 
      * restores it at a specific time.
@@ -75,42 +79,60 @@ public class PlayerController implements Initializable {
         //Get metadata from media
         String artistLabel = (String) media.getMetadata().get("artist");
         String tittleLabel = (String) media.getMetadata().get("title");
-        //System.out.println(albumCover.toString());
-        /*if(artistLabel.equals(""))
-            artistLabel = "Desconocido";
-        
-        if(albumLabel.equals(""))
-            albumLabel = "Desconocido";
-        
-        if(artistLabel.equals(""))  
-            albumLabel = "Desconocido";*/
         
         //Set metadata values
         tittle.setText(tittleLabel);
         artist.setText(artistLabel);
-      
-        //coverImage.getImage();
     }
     
     @FXML
     public void playPauseButtonClicked(ActionEvent event) {
-        setMetadata();
         if(!play) {
+            if (rescuePlay) {
+                mediaPlayer.pause(); //Pause 
+                mediaPlayer = new MediaPlayer(media);
+            }
+            setMetadata();
             mediaPlayer.play();
-            //playPauseImage.setImage(new Image("@pause.png"));
+            //System.out.println(playPauseImageView.getImage());
             play = true;
+            rescuePlay = false;
         }
         else {
-            mediaPlayer.pause();
-            //playPauseImage.setImage(new Image("@play.png"));
-            play = false;
+            if (!rescuePlay) {
+                mediaPlayer.pause();
+                //playPauseImage.setImage(new Image("@play.png"));
+                play = false;
+            }
         }
         fade(playPauseButton);
     }
    
     @FXML
     public void playBackupButtonClicked(ActionEvent event) {
-        setMetadata();
+        if(!rescuePlay) {
+            getFile();
+            mediaPlayer.pause(); //Pause stream media player 
+
+            try {
+                MEDIA_URL = rescueFile.toURI().toURL().toString(); //Change the media source
+                rescueMedia = new Media(MEDIA_URL);
+                mediaPlayer = new MediaPlayer(rescueMedia);
+            } catch (MalformedURLException e) {
+                Logger.getLogger(PlayerController.class.getName()).log(Level.SEVERE, null, e);
+            }
+
+            setMetadata();
+            mediaPlayer.play();
+            
+            rescuePlay = true; //Flag to indicate that backup music is playing
+            play = false; //Stream music is not playing at this moment
+        }
+        else {
+            mediaPlayer.pause();
+            rescuePlay = false;
+        }
+
         fade(playBackupButton);
     }
     
@@ -143,6 +165,16 @@ public class PlayerController implements Initializable {
             System.out.println("No path to save the file");
             return -1;
         }
+        
+        System.out.println("The path to save the rescue file is " + pathToSave);
+        
+        try {
+            saveUrl(pathToSave, "http://a.tumblr.com/tumblr_mpixn84ya21s78phdo1.mp3");
+        } catch (IOException ex) {
+            Logger.getLogger(PlayerController.class.getName()).log(Level.SEVERE, null, ex);
+            return -1;
+        }
+        
         return 0;
     }
         
@@ -190,6 +222,7 @@ public class PlayerController implements Initializable {
         //tittle.setText(Double.toString(volumeSlider.getValue()));
         mute = false;
         play = false;
+        rescuePlay = false;
         
         //fsb.stopExecuting();    
     }    
@@ -197,10 +230,8 @@ public class PlayerController implements Initializable {
     public String saveFile(){
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Guardar respaldo");
-        //chooser.setInitialDirectory(new File(System.getProperty("user.Home")));
         chooser.setInitialFileName("Respaldo.mp3");
-        //select.setFileFilter(new FileNameExtensionFilter("Archivos de música *.mp3"));
-        
+              
         try {
             String a = chooser.showSaveDialog(null).getAbsolutePath();
             return a;
@@ -211,24 +242,37 @@ public class PlayerController implements Initializable {
         return null;
     }
     
-    /*
-    public FileInputStream getFile(){
-        JFileChooser select = new JFileChooser();
-        int a = select.showOpenDialog(null);
-        File file = select.getSelectedFile();
+    public void getFile(){
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Abrir respaldo");
+                      
+        try {
+            rescueFile = chooser.showOpenDialog(null).getAbsoluteFile();
+        }catch(Exception e) {
+            Logger.getLogger(PlayerController.class.getName()).log(Level.SEVERE, null, e);
+            rescueFile = null;
+        }
+    }
+    
+    /* Open a URL and save it into a file */
+    public void saveUrl(String filename, String urlString) throws MalformedURLException, IOException {
+        BufferedInputStream in = null;
+        FileOutputStream fout = null;
+        try {
+            in = new BufferedInputStream(new URL(urlString).openStream());
+            fout = new FileOutputStream(new File(filename));
 
-        if(a == JFileChooser.APPROVE_OPTION){
-            try{
-                FileInputStream f = new FileInputStream(file);
-                return f;
-            }
-            catch(Exception e){
-                System.out.println("File not found!");
+            byte data[] = new byte[1024];
+            int count;
+            while ((count = in.read(data, 0, 1024)) != -1) {
+                fout.write(data, 0, count);
             }
         }
-        else
-            System.out.println("Not input file was choosen");
-
-        return null;
-    }*/
+        finally {
+            if (in != null) 
+                in.close();
+            if (fout != null)
+                fout.close();
+        }
+    }
 }
