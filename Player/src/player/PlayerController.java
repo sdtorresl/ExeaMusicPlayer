@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.scene.control.Slider;
+import javafx.scene.image.Image;
 import javafx.stage.FileChooser;
 
 /**
@@ -88,44 +89,21 @@ public class PlayerController implements Initializable {
         String artistLabel;
         String tittleLabel;
         
-        int n;
         //Get metadata from media
-
         //String artistLabel = (String) media.getMetadata().get("artist");
         //String tittleLabel = (String) media.getMetadata().get("title");
-        
-        
+                
         String md = fsb.getMetadata();
-        
-        
-        System.out.println("+a+a+a+:    " + md);
-        
-        
-        n = md.indexOf('-');
+        int n = md.indexOf('-');
         
         if (md == null || n == -1){
-            artistLabel = "Unknown";
-            tittleLabel = "Unknown";
+            artistLabel = "Desconocido";
+            tittleLabel = "Desconocido";
         }
-        
         else {
-            artistLabel = md.substring(13, n-1).trim();
+            artistLabel = md.substring(13, n-1).trim().replace(";", "");
             tittleLabel = md.substring(n+1, md.length()-6).trim();
         }
-
-        //System.out.println(albumCover.toString());
-        /*if(artistLabel.equals(""))
-            artistLabel = "Desconocido";
-        
-        if(albumLabel.equals(""))
-            albumLabel = "Desconocido";
-        
-        if(artistLabel.equals(""))  
-            albumLabel = "Desconocido";*/
-
-        //String artistLabel = (String) media.getMetadata().get("artist");
-        //String tittleLabel = (String) media.getMetadata().get("title");
-
         
         //Set metadata values
         tittle.setText(tittleLabel);
@@ -141,7 +119,8 @@ public class PlayerController implements Initializable {
             }
             setMetadata();
             mediaPlayer.play();
-            //System.out.println(playPauseImageView.getImage());
+            
+            playPauseImageView.setImage(null);
             playing = true;
             backupPlaying = false;
         }
@@ -208,7 +187,7 @@ public class PlayerController implements Initializable {
             return -1;
         }
         
-            System.out.println("The path to save the rescue file is " + pathToSave);
+            System.out.println("The path to save the backup file is " + pathToSave);
         
         try {
             saveUrl(pathToSave, BACKUP_URL);

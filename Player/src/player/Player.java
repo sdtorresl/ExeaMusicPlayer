@@ -20,9 +20,9 @@ public class Player extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("Player.fxml"));
-        stage.setTitle("Farmatodo radio");
+        stage.setTitle("Farmatodo radio (alfa)");
         stage.setResizable(false);
-        stage.getIcons().add(new Image("file:icon.png"));
+        //stage.getIcons().add(new Image("file:icon.png"));
         Scene scene = new Scene(root);
         
         stage.setScene(scene);

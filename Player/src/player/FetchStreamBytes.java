@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 
 /**
@@ -18,9 +17,9 @@ import javafx.scene.media.MediaPlayer;
 public class FetchStreamBytes implements Runnable {
     private static final int DELAY_TIME = 4000;
     private static final int READ_TIMEOUT = 10000;
-    private String tempFile;
-    private String streamURL;
-    private PlayerController pc;
+    private final String tempFile;
+    private final String streamURL;
+    private final PlayerController pc;
     private volatile boolean execute;
     private String metadata;
 
@@ -118,17 +117,10 @@ public class FetchStreamBytes implements Runnable {
             fos.close();
             tF.delete();
         }
-        catch (IOException e)
-        {
-            
-        } catch (NumberFormatException e) {
-            
-        } /*catch (InterruptedException ex) {
-            //Logger.getLogger(FetchStreamBytes.class.getName()).log(Level.SEVERE, null, ex);
-        }*/
+        catch (IOException | NumberFormatException e) {
+            //Logger.getLogger(FetchStreamBytes.class.getName()).log(Level.SEVERE, null, e);
+        } 
     }
-    
-
     
     public class Counter implements Runnable {
         private static final int STEP = 1;
