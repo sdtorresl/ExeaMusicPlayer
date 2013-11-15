@@ -131,7 +131,7 @@ public class FetchStreamBytes implements Runnable {
 
     
     public class Counter implements Runnable {
-        private static final int STEP = 50;
+        private static final int STEP = 1;
         private int value;
         private boolean execute;
         File tF;
