@@ -1,0 +1,25 @@
+/* 
+    Document   : Player
+    Created on : Sep 24, 2013, 9:34:02 PM
+    Author     : sdtorresl
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+root { 
+    display: block;
+    -fx-background-color: #ccc;
+}
+
+.button {
+    -fx-background-color: #102D5A;
+}
+
+.button:hover {
+    -fx-background-color: #00AACC;
+    -fx-cursor: hand;
+}
+
+.label:hover {
+    -fx-cursor: text;
+}

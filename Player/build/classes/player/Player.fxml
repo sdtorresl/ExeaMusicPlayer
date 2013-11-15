@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.net.*?>
+<?import java.util.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.input.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane id="AnchorPane" minHeight="-Infinity" minWidth="-Infinity" prefHeight="180.0" prefWidth="250.0" rotate="0.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="player.PlayerController">
+  <children>
+    <Pane minHeight="-1.0" minWidth="-1.0" prefHeight="180.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <children>
+        <ImageView fitHeight="190.0" fitWidth="250.0" layoutX="0.0" layoutY="0.0" opacity="0.05" pickOnBounds="true" preserveRatio="true">
+          <image>
+            <Image url="@background.png" />
+          </image>
+        </ImageView>
+        <VBox layoutX="0.0" layoutY="0.0" minHeight="0.0" prefHeight="0.0" prefWidth="250.0">
+          <children>
+            <HBox alignment="CENTER" prefHeight="-1.0" prefWidth="-1.0">
+              <children>
+                <ImageView fitHeight="0.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" smooth="true">
+                  <image>
+                    <Image url="@logo.jpg" />
+                  </image>
+                  <HBox.margin>
+                    <Insets top="10.0" />
+                  </HBox.margin>
+                </ImageView>
+              </children>
+            </HBox>
+            <HBox alignment="CENTER_LEFT" maxWidth="-Infinity" minHeight="-1.0" prefHeight="60.0" prefWidth="250.0" spacing="0.0">
+              <children>
+                <VBox prefHeight="200.0" prefWidth="50.0">
+                  <children>
+                    <Button id="playButton" fx:id="playPauseButton" onAction="#playPauseButtonClicked">
+                      <graphic>
+                        <ImageView fitHeight="20.0" fitWidth="20.0">
+                          <Image url="@play.png" />
+                        </ImageView>
+                      </graphic>
+                      <VBox.margin>
+                        <Insets />
+                      </VBox.margin>
+                    </Button>
+                    <Button id="pauseButton" fx:id="muteButton" onAction="#muteButtonClicked">
+                      <graphic>
+                        <ImageView fitHeight="20.0" fitWidth="20.0">
+                          <Image url="@mute.png" />
+                        </ImageView>
+                      </graphic>
+                      <VBox.margin>
+                        <Insets top="15.0" />
+                      </VBox.margin>
+                    </Button>
+                  </children>
+                </VBox>
+                <VBox id="VBox" alignment="CENTER_LEFT" prefHeight="151.5" prefWidth="180.0" spacing="10.0">
+                  <children>
+                    <HBox id="HBox" alignment="CENTER_LEFT" spacing="5.0">
+                      <children>
+                        <Label minWidth="-Infinity" text="Titulo:">
+                          <font>
+                            <Font size="13.0" />
+                          </font>
+                        </Label>
+                        <Label fx:id="tittle" text="" />
+                      </children>
+                    </HBox>
+                    <HBox id="HBox" alignment="CENTER_LEFT" spacing="5.0">
+                      <children>
+                        <Label id="artist" minWidth="-Infinity" text="Artista:" />
+                        <Label id="tittle" fx:id="artist" text="" />
+                      </children>
+                    </HBox>
+                    <HBox alignment="CENTER" prefHeight="-1.0" prefWidth="-1.0">
+                      <children>
+                        <Slider fx:id="volumeSlider" onScroll="#volumeChanged" value="80.0" />
+                      </children>
+                      <padding>
+                        <Insets />
+                      </padding>
+                    </HBox>
+                  </children>
+                  <padding>
+                    <Insets left="10.0" />
+                  </padding>
+                </VBox>
+              </children>
+              <padding>
+                <Insets left="15.0" top="10.0" />
+              </padding>
+            </HBox>
+            <HBox id="HBox" alignment="CENTER" fillHeight="true" maxHeight="-1.0" maxWidth="-1.0" minHeight="-1.0" minWidth="-1.0" prefWidth="340.0" spacing="10.0">
+              <children>
+                <Button id="download" fx:id="backupButton" mnemonicParsing="false" onAction="#downloadBackup" text="Respaldo" textAlignment="CENTER" textFill="WHITE">
+                  <font>
+                    <Font size="15.0" />
+                  </font>
+                  <graphic>
+                    <ImageView fitHeight="15.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                      <image>
+                        <Image url="@down.png" />
+                      </image>
+                    </ImageView>
+                  </graphic>
+                </Button>
+                <Button id="playRescue" fx:id="playBackupButton" alignment="CENTER" onAction="#playBackupButtonClicked" style="padding: 10px">
+                  <graphic>
+                    <ImageView fitHeight="20.0" fitWidth="20.0">
+                      <Image url="@playBackup.png" />
+                    </ImageView>
+                  </graphic>
+                </Button>
+              </children>
+              <effect>
+                <Reflection fraction="0.24606299212598426" />
+              </effect>
+              <padding>
+                <Insets top="10.0" />
+              </padding>
+            </HBox>
+          </children>
+        </VBox>
+      </children>
+    </Pane>
+  </children>
+  <stylesheets>
+    <URL value="@Player.css" />
+  </stylesheets>
+</AnchorPane>
