@@ -16,7 +16,7 @@
   <children>
     <Pane minHeight="-1.0" minWidth="-1.0" prefHeight="180.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <children>
-        <ImageView fitHeight="190.0" fitWidth="250.0" layoutX="0.0" layoutY="0.0" opacity="0.05" pickOnBounds="true" preserveRatio="true">
+        <ImageView fitHeight="190.0" fitWidth="250.0" layoutX="0.0" layoutY="0.0" opacity="0.2" pickOnBounds="true" preserveRatio="true">
           <image>
             <Image url="@background.png" />
           </image>

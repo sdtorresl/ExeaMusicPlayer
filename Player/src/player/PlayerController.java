@@ -40,10 +40,10 @@ import javafx.stage.FileChooser;
 public class PlayerController implements Initializable {
     /* Global variables */
     
-    private static String MEDIA_URL = "/tmp/stream.mp3";
+    private static String MEDIA_URL = "stream.mp3";
     private final static String STREAM_URL = "http://stream.exeamedia.com/farmatodotest.mp3";
     private final static String BACKUP_URL = "http://a.tumblr.com/tumblr_mpixn84ya21s78phdo1.mp3";
-    private File audioFile, rescueFile;
+    private static File audioFile, rescueFile;
     private static final int DELAY_TIME = 4000;
     
     private static Media media, rescueMedia;
@@ -58,13 +58,36 @@ public class PlayerController implements Initializable {
     public ProgressBar progress;
     public Button playPauseButton, playBackupButton, backupButton, muteButton;
     public Slider volumeSlider;
+    public ImageView playPauseImageView, muteImageView;
 
+    /** 
+     * Get the actual media player
+     * 
+     * @return MediaPlayer
+     */
     public MediaPlayer getMediaPlayer(){
         return mediaPlayer;
     }
+      
+    /**
+     * Return the main thread for 
+     * stream audio
+     * 
+     * @return Thread
+     */
+    public static Thread getThread() {
+        return t;
+    }
     
-
-    public ImageView playPauseImageView, muteImageView;
+    /**
+     * Return the main thread for 
+     * stream audio
+     * 
+     * @return Thread
+     */
+    public static File getAudioFile() {
+        return audioFile;
+    }
     /** 
      * Makes an animation that reduces the opacity of an element and 
      * restores it at a specific time.
@@ -117,11 +140,13 @@ public class PlayerController implements Initializable {
             if (backupPlaying) {
                 mediaPlayer.pause(); //Pause 
                 mediaPlayer = new MediaPlayer(media);
+                playBackupButton.setStyle("-fx-background-color: #102D5A;");
             }
             setMetadata();
             mediaPlayer.play();
             
             //playPauseImageView.setImage(null);
+            playPauseButton.setStyle("-fx-background-color: #00AACC;");
             playing = true;
             backupPlaying = false;
         }
@@ -130,6 +155,7 @@ public class PlayerController implements Initializable {
                 mediaPlayer.pause();
                 //playPauseImage.setImage(new Image("@playing.png"));
                 playing = false;
+                playPauseButton.setStyle("-fx-background-color: #102D5A;");
             }
         }
         fade(playPauseButton);
@@ -139,7 +165,10 @@ public class PlayerController implements Initializable {
     public void playBackupButtonClicked(ActionEvent event) {
         if(!backupPlaying) {
             getFile();
-            mediaPlayer.pause(); //Pause stream media player 
+            if(playing) {
+                mediaPlayer.pause(); //Pause stream media player 
+                playPauseButton.setStyle("-fx-background-color: #102D5A;");
+            }
 
             try {
                 MEDIA_URL = rescueFile.toURI().toURL().toString(); //Change the media source
@@ -151,12 +180,14 @@ public class PlayerController implements Initializable {
 
             setMetadata();
             mediaPlayer.play();
+            playBackupButton.setStyle("-fx-background-color: #00AACC;");
             
             backupPlaying = true; //Flag to indicate that backup music is playing
             playing = false; //Stream music is not playing at this moment
         }
         else {
             mediaPlayer.pause();
+            playBackupButton.setStyle("-fx-background-color: #102D5A;");
             backupPlaying = false;
         }
 
@@ -168,10 +199,12 @@ public class PlayerController implements Initializable {
         if(!mute) {
             mediaPlayer.setMute(true);
             mute = true;
+            muteButton.setStyle("-fx-background-color: #00AACC;");
         }
         else {
             mediaPlayer.setMute(false);
             mute = false;
+            muteButton.setStyle("-fx-background-color: #102D5A;");
         }
         fade(muteButton);
     }
@@ -209,14 +242,18 @@ public class PlayerController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        audioFile = new File(MEDIA_URL);
+        
+        /*
         try {
-            audioFile = File.createTempFile("stream.mp3", null);
+            //audioFile = File.createTempFile("stream", "ExeaMusicPlayer_").getAbsolutePath().toString();
+            audioFile = new File(File.createTempFile("stream", "ExeaMusicPlayer_").getAbsolutePath().toString());
         } catch (IOException ex) {
             Logger.getLogger(PlayerController.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
+        }*/
+                
         // Create media player
-        audioFile = new File(MEDIA_URL);
+        
         audioFile.deleteOnExit();
 
        	fsb =  new FetchStreamBytes(MEDIA_URL, STREAM_URL, this);
@@ -254,16 +291,12 @@ public class PlayerController implements Initializable {
                 }
             }
         });
-    }    
-    
-    /* Return the main thread for 
-     * stream audio
-     */
-    public static Thread getThread () {
-        return t;
     }
     
-    /* Open a file chooser for select a path to save a file
+    /**
+     * Open a file chooser for select a path to save a file
+     * 
+     * @return String
      */
     public String saveFile(){
         FileChooser chooser = new FileChooser();
@@ -280,7 +313,8 @@ public class PlayerController implements Initializable {
         return null;
     }
     
-    /* Get the backup file that will be open
+    /**
+     * Get the backup file that will be open
      */
     public void getFile(){
         FileChooser chooser = new FileChooser();
@@ -294,7 +328,8 @@ public class PlayerController implements Initializable {
         }
     }
     
-    /* Open a URL and save it into a file 
+    /**
+     * Open a URL and save it into a file 
      */
     public void saveUrl(String filename, String urlString) throws MalformedURLException, IOException {
         BufferedInputStream in = null;

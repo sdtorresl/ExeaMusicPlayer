@@ -4,11 +4,11 @@
  */
 package player;
 
+import java.io.File;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 /**
@@ -20,6 +20,7 @@ public class Player extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("Player.fxml"));
+        
         stage.setTitle("Farmatodo radio (alfa)");
         stage.setResizable(false);
         //stage.getIcons().add(new Image("file:icon.png"));
@@ -33,9 +34,11 @@ public class Player extends Application {
     @Override
     public void stop() {
         Thread t = PlayerController.getThread();
-        //t.interrupt();
         t.stop();
         System.out.println("Exit");
+        
+        File audioFile = PlayerController.getAudioFile();
+        audioFile.delete();
     }
     
     /**
