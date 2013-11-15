@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.scene.control.Slider;
-import javafx.scene.image.Image;
+//import javafx.scene.image.Image;
 import javafx.stage.FileChooser;
 
 /**
@@ -51,7 +51,7 @@ public class PlayerController implements Initializable {
     private Boolean mute, playing, backupPlaying;
     
     private FetchStreamBytes fsb;
-    private Thread t;
+    private static Thread t;
     
     @FXML
     public Label tittle, artist, album;
@@ -101,8 +101,9 @@ public class PlayerController implements Initializable {
             tittleLabel = "Desconocido";
         }
         else {
-            artistLabel = md.substring(13, n-1).trim().replace(";", "");
-            tittleLabel = md.substring(n+1, md.length()-6).trim();
+            artistLabel = md.substring(13, n-1).trim();
+            // Delete a string error on some tittle labels
+            tittleLabel = md.substring(n+1, md.length()-6).trim().replaceAll("';", "");
         }
         
         //Set metadata values
@@ -120,7 +121,7 @@ public class PlayerController implements Initializable {
             setMetadata();
             mediaPlayer.play();
             
-            playPauseImageView.setImage(null);
+            //playPauseImageView.setImage(null);
             playing = true;
             backupPlaying = false;
         }
@@ -177,20 +178,18 @@ public class PlayerController implements Initializable {
         
     @FXML
     public int downloadBackup(ActionEvent event) {
-        /*HttpGet httpGet = new HttpGet(this.remoteUrl);
-        HttpResponse response = httpClient.execute(httpGet);*/
         fade(backupButton);
-        String pathToSave = saveFile();
+        String pathToSave = saveFile(); // Get the path to save backup file
         
         if(pathToSave.equals("")) {
             System.out.println("No path to save the file");
             return -1;
         }
         
-            System.out.println("The path to save the backup file is " + pathToSave);
+        System.out.println("The path to save the backup file is " + pathToSave);
         
         try {
-            saveUrl(pathToSave, BACKUP_URL);
+            saveUrl(pathToSave, BACKUP_URL); //Download backup file in the path
         } catch (IOException ex) {
             Logger.getLogger(PlayerController.class.getName()).log(Level.SEVERE, null, ex);
             return -1;
@@ -210,7 +209,6 @@ public class PlayerController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        
         try {
             audioFile = File.createTempFile("stream.mp3", null);
         } catch (IOException ex) {
@@ -218,7 +216,6 @@ public class PlayerController implements Initializable {
         }
         
         // Create media player
-
         audioFile = new File(MEDIA_URL);
         audioFile.deleteOnExit();
 
@@ -259,6 +256,15 @@ public class PlayerController implements Initializable {
         });
     }    
     
+    /* Return the main thread for 
+     * stream audio
+     */
+    public static Thread getThread () {
+        return t;
+    }
+    
+    /* Open a file chooser for select a path to save a file
+     */
     public String saveFile(){
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Guardar respaldo");
@@ -274,6 +280,8 @@ public class PlayerController implements Initializable {
         return null;
     }
     
+    /* Get the backup file that will be open
+     */
     public void getFile(){
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Abrir respaldo");
@@ -286,10 +294,12 @@ public class PlayerController implements Initializable {
         }
     }
     
-    /* Open a URL and save it into a file */
+    /* Open a URL and save it into a file 
+     */
     public void saveUrl(String filename, String urlString) throws MalformedURLException, IOException {
         BufferedInputStream in = null;
         FileOutputStream fout = null;
+        
         try {
             in = new BufferedInputStream(new URL(urlString).openStream());
             fout = new FileOutputStream(new File(filename));

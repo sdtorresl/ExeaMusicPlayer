@@ -26,9 +26,18 @@ public class Player extends Application {
         Scene scene = new Scene(root);
         
         stage.setScene(scene);
+        
         stage.show();
     }
 
+    @Override
+    public void stop() {
+        Thread t = PlayerController.getThread();
+        //t.interrupt();
+        t.stop();
+        System.out.println("Exit");
+    }
+    
     /**
      * The main() method is ignored in correctly deployed JavaFX application.
      * main() serves only as fallback in case the application can not be
