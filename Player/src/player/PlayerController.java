@@ -9,8 +9,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import javafx.animation.*;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -21,7 +19,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.util.Duration;
 
@@ -29,25 +26,27 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.application.HostServices;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.scene.control.Slider;
-import javafx.scene.image.Image;
 import javafx.stage.FileChooser;
-import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
  *
  * @author sdtorresl
  */
 public class PlayerController implements Initializable {
+    /* Global variables */
+    
     private static String MEDIA_URL = "/tmp/stream.mp3";
-    private static String RESCUE_URL = "http://stream.exeamedia.com/farmatodotest.mp3";
+    private final static String STREAM_URL = "http://stream.exeamedia.com/farmatodotest.mp3";
+    private final static String BACKUP_URL = "http://a.tumblr.com/tumblr_mpixn84ya21s78phdo1.mp3";
     private File audioFile, rescueFile;
     private static final int DELAY_TIME = 4000;
     
     private static Media media, rescueMedia;
     private MediaPlayer mediaPlayer;
-    private Boolean mute, play, rescuePlay;
+    private Boolean mute, playing, backupPlaying;
     
     @FXML
     public Label tittle, artist, album;
@@ -87,22 +86,22 @@ public class PlayerController implements Initializable {
     
     @FXML
     public void playPauseButtonClicked(ActionEvent event) {
-        if(!play) {
-            if (rescuePlay) {
+        if(!playing) {
+            if (backupPlaying) {
                 mediaPlayer.pause(); //Pause 
                 mediaPlayer = new MediaPlayer(media);
             }
             setMetadata();
             mediaPlayer.play();
             //System.out.println(playPauseImageView.getImage());
-            play = true;
-            rescuePlay = false;
+            playing = true;
+            backupPlaying = false;
         }
         else {
-            if (!rescuePlay) {
+            if (!backupPlaying) {
                 mediaPlayer.pause();
-                //playPauseImage.setImage(new Image("@play.png"));
-                play = false;
+                //playPauseImage.setImage(new Image("@playing.png"));
+                playing = false;
             }
         }
         fade(playPauseButton);
@@ -110,7 +109,7 @@ public class PlayerController implements Initializable {
    
     @FXML
     public void playBackupButtonClicked(ActionEvent event) {
-        if(!rescuePlay) {
+        if(!backupPlaying) {
             getFile();
             mediaPlayer.pause(); //Pause stream media player 
 
@@ -125,12 +124,12 @@ public class PlayerController implements Initializable {
             setMetadata();
             mediaPlayer.play();
             
-            rescuePlay = true; //Flag to indicate that backup music is playing
-            play = false; //Stream music is not playing at this moment
+            backupPlaying = true; //Flag to indicate that backup music is playing
+            playing = false; //Stream music is not playing at this moment
         }
         else {
             mediaPlayer.pause();
-            rescuePlay = false;
+            backupPlaying = false;
         }
 
         fade(playBackupButton);
@@ -148,12 +147,7 @@ public class PlayerController implements Initializable {
         }
         fade(muteButton);
     }
-    
-    @FXML
-    public void volumeChanged(ActionEvent event) {
-        tittle.setText(Double.toString(volumeSlider.getValue()));
-    }
-    
+        
     @FXML
     public int downloadBackup(ActionEvent event) {
         /*HttpGet httpGet = new HttpGet(this.remoteUrl);
@@ -169,7 +163,7 @@ public class PlayerController implements Initializable {
         System.out.println("The path to save the rescue file is " + pathToSave);
         
         try {
-            saveUrl(pathToSave, "http://a.tumblr.com/tumblr_mpixn84ya21s78phdo1.mp3");
+            saveUrl(pathToSave, BACKUP_URL);
         } catch (IOException ex) {
             Logger.getLogger(PlayerController.class.getName()).log(Level.SEVERE, null, ex);
             return -1;
@@ -199,7 +193,7 @@ public class PlayerController implements Initializable {
         // Create media player
         audioFile = new File(MEDIA_URL);
         audioFile.deleteOnExit();
-        FetchStreamBytes fsb = new FetchStreamBytes(MEDIA_URL, RESCUE_URL);
+        FetchStreamBytes fsb = new FetchStreamBytes(MEDIA_URL, STREAM_URL);
         Thread t = new Thread(fsb);
         t.start();
         media = null;
@@ -221,10 +215,18 @@ public class PlayerController implements Initializable {
        
         //tittle.setText(Double.toString(volumeSlider.getValue()));
         mute = false;
-        play = false;
-        rescuePlay = false;
+        playing = false;
+        backupPlaying = false;
         
-        //fsb.stopExecuting();    
+        //Volume control
+        volumeSlider.valueProperty().addListener(new InvalidationListener() {
+            @Override
+            public void invalidated(Observable ov) {
+                if (volumeSlider.isValueChanging()) {
+                    mediaPlayer.setVolume(volumeSlider.getValue() / 100.0);
+                }
+            }
+        });
     }    
     
     public String saveFile(){
