@@ -88,13 +88,19 @@ public class PlayerController implements Initializable {
     public void setMetadata() {
         String artistLabel;
         String tittleLabel;
+        
         int n;
         //Get metadata from media
 
         //String artistLabel = (String) media.getMetadata().get("artist");
         //String tittleLabel = (String) media.getMetadata().get("title");
         
+        
         String md = fsb.getMetadata();
+        
+        
+        System.out.println("+a+a+a+:    " + md);
+        
         
         n = md.indexOf('-');
         
@@ -208,7 +214,7 @@ public class PlayerController implements Initializable {
             return -1;
         }
         
-        System.out.println("The path to save the rescue file is " + pathToSave);
+            System.out.println("The path to save the rescue file is " + pathToSave);
         
         try {
             saveUrl(pathToSave, "http://a.tumblr.com/tumblr_mpixn84ya21s78phdo1.mp3");

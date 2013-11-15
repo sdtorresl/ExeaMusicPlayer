@@ -109,7 +109,7 @@ public class FetchStreamBytes implements Runnable {
                     //titleBuffer = readNext (stream, READ_TIMEOUT, headerLength);
                     /** Printing out our title **/
                     this.metadata = new String(titleBuffer);
-                    pc.setMetadata();
+                    //pc.setMetadata();
                 }
                 fos.write(audioBuffer);
             }
