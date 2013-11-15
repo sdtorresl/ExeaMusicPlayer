@@ -38,7 +38,7 @@ public class PlayerController implements Initializable {
     private static String MEDIA_URL = 
             System.getProperty("user.home")+"/Music/AC_DC/Hits/08 - T.N.T..mp3";
     //private static String RESCUE_URL = "http://stream";
-    private static String RESCUE_URL = "http://radio.zaycev.fm:9002/ZaycevFM(128)";
+    private static String RESCUE_URL = "http://stream.exeamedia.com/farmatodotest.mp3";
     
     private static final int DELAY_TIME = 4000;
     
@@ -46,11 +46,19 @@ public class PlayerController implements Initializable {
     private static Media media;
     private MediaPlayer mediaPlayer;
     
+    private File audioFile;
+    private FetchStreamBytes fsb;
+    private Thread t;
+    
     @FXML
     public Label tittle, artist, album;
     public ProgressBar progress;
     public Button playPauseButton, playBackupButton, backupButton;
     public Slider volumeSlider;
+    
+    public MediaPlayer getMediaPlayer(){
+        return mediaPlayer;
+    }
     
     /** 
      * Makes an animation that reduces the opacity of an element and 
@@ -73,9 +81,29 @@ public class PlayerController implements Initializable {
      * labels of the player.
      */
     public void setMetadata() {
+        String artistLabel;
+        String tittleLabel;
+        int n;
         //Get metadata from media
-        String artistLabel = (String) media.getMetadata().get("artist");
-        String tittleLabel = (String) media.getMetadata().get("title");
+        //String artistLabel = (String) media.getMetadata().get("artist");
+        //String tittleLabel = (String) media.getMetadata().get("title");
+        
+        String md = fsb.getMetadata();
+        
+        n = md.indexOf('-');
+        
+        if (md == null || n == -1){
+            artistLabel = "Unknown";
+            tittleLabel = "Unknown";
+        }
+        
+        else {
+            artistLabel = md.substring(13, n-1).trim();
+            tittleLabel = md.substring(n+1, md.length()-6).trim();
+        }
+        
+        System.out.println("-+-+-+ Titulo, autor: " + tittleLabel + " -.- " + artistLabel);
+
         //System.out.println(albumCover.toString());
         /*if(artistLabel.equals(""))
             artistLabel = "Desconocido";
@@ -146,12 +174,14 @@ public class PlayerController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // Create media player
-        File audioFile = new File(MEDIA_URL);
-        FetchStreamBytes fsb = new FetchStreamBytes(MEDIA_URL, RESCUE_URL);
-        Thread t = new Thread(fsb);
-        t.start();
+        
+        audioFile = new File(MEDIA_URL);
         media = null;
-               
+        
+        fsb =  new FetchStreamBytes(MEDIA_URL, RESCUE_URL, this);
+        t = new Thread(fsb);
+        t.start();
+        
         try {
             Thread.sleep(DELAY_TIME);
         } catch (InterruptedException ex) {   
@@ -160,6 +190,7 @@ public class PlayerController implements Initializable {
         try {
             MEDIA_URL = audioFile.toURI().toURL().toString();
             media = new Media(MEDIA_URL);
+
             mediaPlayer = new MediaPlayer(media);
             mediaPlayer.setAutoPlay(false);
         } catch (MalformedURLException e) {
