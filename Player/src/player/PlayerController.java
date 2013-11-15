@@ -1,10 +1,14 @@
+
 /*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
 package player;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -18,7 +22,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
-//import javafx.scene.image.Image;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.util.Duration;
 
@@ -26,25 +30,25 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.HostServices;
 import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.stage.FileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
  *
  * @author sdtorresl
  */
 public class PlayerController implements Initializable {
-    private static String MEDIA_URL = 
-            System.getProperty("user.home")+"/Music/AC_DC/Hits/08 - T.N.T..mp3";
-    //private static String RESCUE_URL = "http://stream";
+    private static String MEDIA_URL = "/tmp/stream.mp3";
     private static String RESCUE_URL = "http://stream.exeamedia.com/farmatodotest.mp3";
-    
+    private File audioFile, rescueFile;
     private static final int DELAY_TIME = 4000;
     
-    //private FileOutputStream file;
-    private static Media media;
+    private static Media media, rescueMedia;
     private MediaPlayer mediaPlayer;
+    private Boolean mute, play, rescuePlay;
     
     private File audioFile;
     private FetchStreamBytes fsb;
@@ -53,13 +57,15 @@ public class PlayerController implements Initializable {
     @FXML
     public Label tittle, artist, album;
     public ProgressBar progress;
-    public Button playPauseButton, playBackupButton, backupButton;
+    public Button playPauseButton, playBackupButton, backupButton, muteButton;
     public Slider volumeSlider;
-    
+
     public MediaPlayer getMediaPlayer(){
         return mediaPlayer;
     }
     
+
+    public ImageView playPauseImageView, muteImageView;
     /** 
      * Makes an animation that reduces the opacity of an element and 
      * restores it at a specific time.
@@ -85,6 +91,7 @@ public class PlayerController implements Initializable {
         String tittleLabel;
         int n;
         //Get metadata from media
+
         //String artistLabel = (String) media.getMetadata().get("artist");
         //String tittleLabel = (String) media.getMetadata().get("title");
         
@@ -113,34 +120,78 @@ public class PlayerController implements Initializable {
         
         if(artistLabel.equals(""))  
             albumLabel = "Desconocido";*/
+
+        String artistLabel = (String) media.getMetadata().get("artist");
+        String tittleLabel = (String) media.getMetadata().get("title");
+
         
         //Set metadata values
         tittle.setText(tittleLabel);
         artist.setText(artistLabel);
-      
-        //coverImage.getImage();
     }
     
     @FXML
     public void playPauseButtonClicked(ActionEvent event) {
-        setMetadata();
-        
-        mediaPlayer.play();
+        if(!play) {
+            if (rescuePlay) {
+                mediaPlayer.pause(); //Pause 
+                mediaPlayer = new MediaPlayer(media);
+            }
+            setMetadata();
+            mediaPlayer.play();
+            //System.out.println(playPauseImageView.getImage());
+            play = true;
+            rescuePlay = false;
+        }
+        else {
+            if (!rescuePlay) {
+                mediaPlayer.pause();
+                //playPauseImage.setImage(new Image("@play.png"));
+                play = false;
+            }
+        }
         fade(playPauseButton);
     }
    
-    
-    
     @FXML
     public void playBackupButtonClicked(ActionEvent event) {
-        setMetadata();
+        if(!rescuePlay) {
+            getFile();
+            mediaPlayer.pause(); //Pause stream media player 
+
+            try {
+                MEDIA_URL = rescueFile.toURI().toURL().toString(); //Change the media source
+                rescueMedia = new Media(MEDIA_URL);
+                mediaPlayer = new MediaPlayer(rescueMedia);
+            } catch (MalformedURLException e) {
+                Logger.getLogger(PlayerController.class.getName()).log(Level.SEVERE, null, e);
+            }
+
+            setMetadata();
+            mediaPlayer.play();
+            
+            rescuePlay = true; //Flag to indicate that backup music is playing
+            play = false; //Stream music is not playing at this moment
+        }
+        else {
+            mediaPlayer.pause();
+            rescuePlay = false;
+        }
+
         fade(playBackupButton);
     }
     
     @FXML
     public void muteButtonClicked(ActionEvent event) {
-        setMetadata();
-        fade(playBackupButton);
+        if(!mute) {
+            mediaPlayer.setMute(true);
+            mute = true;
+        }
+        else {
+            mediaPlayer.setMute(false);
+            mute = false;
+        }
+        fade(muteButton);
     }
     
     @FXML
@@ -159,6 +210,16 @@ public class PlayerController implements Initializable {
             System.out.println("No path to save the file");
             return -1;
         }
+        
+        System.out.println("The path to save the rescue file is " + pathToSave);
+        
+        try {
+            saveUrl(pathToSave, "http://a.tumblr.com/tumblr_mpixn84ya21s78phdo1.mp3");
+        } catch (IOException ex) {
+            Logger.getLogger(PlayerController.class.getName()).log(Level.SEVERE, null, ex);
+            return -1;
+        }
+        
         return 0;
     }
         
@@ -173,18 +234,26 @@ public class PlayerController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // Create media player
-        
-        audioFile = new File(MEDIA_URL);
-        media = null;
-        
-        fsb =  new FetchStreamBytes(MEDIA_URL, RESCUE_URL, this);
-        t = new Thread(fsb);
-        t.start();
         
         try {
+            audioFile = File.createTempFile("stream.mp3", null);
+        } catch (IOException ex) {
+            Logger.getLogger(PlayerController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        // Create media player
+
+        audioFile = new File(MEDIA_URL);
+        audioFile.deleteOnExit();
+       	fsb =  new FetchStreamBytes(MEDIA_URL, RESCUE_URL, this);
+        t = new Thread(fsb);
+        t.start();
+        media = null;
+       
+        try {
             Thread.sleep(DELAY_TIME);
-        } catch (InterruptedException ex) {   
+        } catch (InterruptedException ex) {
+            Logger.getLogger(PlayerController.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         try {
@@ -194,16 +263,13 @@ public class PlayerController implements Initializable {
             mediaPlayer = new MediaPlayer(media);
             mediaPlayer.setAutoPlay(false);
         } catch (MalformedURLException e) {
-            System.out.println("MalformedURLException");
+            Logger.getLogger(PlayerController.class.getName()).log(Level.SEVERE, null, e);
         }
        
-        tittle.setText(Double.toString(volumeSlider.getValue()));
-        /*
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException ex) {
-        }
-        */
+        //tittle.setText(Double.toString(volumeSlider.getValue()));
+        mute = false;
+        play = false;
+        rescuePlay = false;
         
         //fsb.stopExecuting();    
     }    
@@ -211,38 +277,49 @@ public class PlayerController implements Initializable {
     public String saveFile(){
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Guardar respaldo");
-        //chooser.setInitialDirectory(new File(System.getProperty("user.Home")));
         chooser.setInitialFileName("Respaldo.mp3");
-        //select.setFileFilter(new FileNameExtensionFilter("Archivos de música *.mp3"));
-        
+              
         try {
             String a = chooser.showSaveDialog(null).getAbsolutePath();
             return a;
         }catch(Exception e) {
-            e.printStackTrace();
+            Logger.getLogger(PlayerController.class.getName()).log(Level.SEVERE, null, e);
         }
         
         return null;
     }
     
-    /*
-    public FileInputStream getFile(){
-        JFileChooser select = new JFileChooser();
-        int a = select.showOpenDialog(null);
-        File file = select.getSelectedFile();
+    public void getFile(){
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Abrir respaldo");
+                      
+        try {
+            rescueFile = chooser.showOpenDialog(null).getAbsoluteFile();
+        }catch(Exception e) {
+            Logger.getLogger(PlayerController.class.getName()).log(Level.SEVERE, null, e);
+            rescueFile = null;
+        }
+    }
+    
+    /* Open a URL and save it into a file */
+    public void saveUrl(String filename, String urlString) throws MalformedURLException, IOException {
+        BufferedInputStream in = null;
+        FileOutputStream fout = null;
+        try {
+            in = new BufferedInputStream(new URL(urlString).openStream());
+            fout = new FileOutputStream(new File(filename));
 
-        if(a == JFileChooser.APPROVE_OPTION){
-            try{
-                FileInputStream f = new FileInputStream(file);
-                return f;
-            }
-            catch(Exception e){
-                System.out.println("File not found!");
+            byte data[] = new byte[1024];
+            int count;
+            while ((count = in.read(data, 0, 1024)) != -1) {
+                fout.write(data, 0, count);
             }
         }
-        else
-            System.out.println("Not input file was choosen");
-
-        return null;
-    }*/
+        finally {
+            if (in != null) 
+                in.close();
+            if (fout != null)
+                fout.close();
+        }
+    }
 }
