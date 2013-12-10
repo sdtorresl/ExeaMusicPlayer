@@ -6,6 +6,7 @@ package player;
 
 import java.io.File;
 import javafx.application.Application;
+import javafx.concurrent.Task;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -21,7 +22,7 @@ public class Player extends Application {
     public void start(Stage stage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("Player.fxml"));
         
-        stage.setTitle("Farmatodo radio (alfa)");
+        stage.setTitle("Farmatodo radio (beta)");
         stage.setResizable(false);
         //stage.getIcons().add(new Image("file:icon.png"));
         Scene scene = new Scene(root);
@@ -37,8 +38,16 @@ public class Player extends Application {
         t.stop();
         System.out.println("Exit");
         
-        File audioFile = PlayerController.getAudioFile();
-        audioFile.delete();
+        try {
+            File audioFile = PlayerController.getAudioFile();
+            audioFile.delete();
+        }
+        catch(Exception ioe) {
+            
+        }
+        
+        Task task = PlayerController.getTask();
+        task.cancel();
     }
     
     /**

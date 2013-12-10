@@ -25,10 +25,12 @@ import javafx.util.Duration;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
+import javafx.concurrent.Task;
 import javafx.scene.control.Slider;
 //import javafx.scene.image.Image;
 import javafx.stage.FileChooser;
@@ -41,8 +43,8 @@ public class PlayerController implements Initializable {
     /* Global variables */
     
     private static String MEDIA_URL = "stream.mp3";
-    private final static String STREAM_URL = "http://stream.exeamedia.com/farmatodotest.mp3";
-    private final static String BACKUP_URL = "http://a.tumblr.com/tumblr_mpixn84ya21s78phdo1.mp3";
+    private final static String STREAM_URL = "http://stream01.exeamedia.com/farmatodotest.mp3";
+    private final static String BACKUP_URL = "https://docs.google.com/uc?export=download&id=0B7PnSG02Gn9veTJqUVNuamxLVG8";//http://a.tumblr.com/tumblr_mpixn84ya21s78phdo1.mp3";
     private static File audioFile, rescueFile;
     private static final int DELAY_TIME = 4000;
     
@@ -51,7 +53,8 @@ public class PlayerController implements Initializable {
     private Boolean mute, playing, backupPlaying;
     
     private FetchStreamBytes fsb;
-    private static Thread t;
+    private static Thread fsbThread;
+    private static Thread metadataThread;
     
     @FXML
     public Label tittle, artist, album;
@@ -76,14 +79,23 @@ public class PlayerController implements Initializable {
      * @return Thread
      */
     public static Thread getThread() {
-        return t;
+        return fsbThread;
+    }
+    
+    /**
+     * Return the setMetadata task
+     * 
+     * @return Task
+     */
+    public static Task getTask() {
+        return task;
     }
     
     /**
      * Return the main thread for 
      * stream audio
      * 
-     * @return Thread
+     * @return File
      */
     public static File getAudioFile() {
         return audioFile;
@@ -239,7 +251,93 @@ public class PlayerController implements Initializable {
         mediaPlayer.pause();
         fade(playPauseButton);
     }
+    
+    /**
+     * Open a file chooser for select a path to save a file
+     * 
+     * @return String
+     */
+    public String saveFile(){
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Guardar respaldo");
+        //chooser.setInitialFileName("Respaldo.mp3");
+        chooser.setInitialDirectory(new File(System.getProperty("user.home")));
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Archivo de audio mp3", "*.mp3"));
+        
+        try {
+            String a = chooser.showSaveDialog(null).getAbsolutePath();
+            if (!a.contains(".mp3")) {
+                a = a + ".mp3";
+            }
+            return a;
+        }catch(Exception e) {
+            Logger.getLogger(PlayerController.class.getName()).log(Level.SEVERE, null, e);
+        }
+        
+        return null;
+    }
+    
+    
+    /**
+     * Get the backup file that will be open
+     */
+    public void getFile(){
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Abrir respaldo");
+                      
+        try {
+            rescueFile = chooser.showOpenDialog(null).getAbsoluteFile();
+        }catch(Exception e) {
+            Logger.getLogger(PlayerController.class.getName()).log(Level.SEVERE, null, e);
+            rescueFile = null;
+        }
+    }
+    
+    /**
+     * Open a URL and save it into a file 
+     * 
+     * @param filename
+     * @param urlString
+     * @throws java.net.MalformedURLException
+     */
+    public void saveUrl(String filename, String urlString) throws MalformedURLException, IOException {
+        BufferedInputStream in = null;
+        FileOutputStream fout = null;
+        
+        try {
+            in = new BufferedInputStream(new URL(urlString).openStream());
+            fout = new FileOutputStream(new File(filename));
 
+            byte data[] = new byte[1024];
+            int count;
+            while ((count = in.read(data, 0, 1024)) != -1) {
+                fout.write(data, 0, count);
+            }
+        }
+        finally {
+            if (in != null) 
+                in.close();
+            if (fout != null)
+                fout.close();
+        }
+    }
+    
+    private static final Task<Void> metadataUpdate = new Task<Void>() {
+         @Override 
+         protected Void call() throws Exception {
+             System.out.println("Metadata inicio");
+             int i = 0;
+             while(i<1) {
+                System.out.println("Metadata");
+                TimeUnit.SECONDS.sleep(1);
+                if(isCancelled())
+                    break;
+             }
+             System.out.println("Metadata fin");
+             return null;
+         }
+     };
+    
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         audioFile = new File(MEDIA_URL);
@@ -257,9 +355,12 @@ public class PlayerController implements Initializable {
         audioFile.deleteOnExit();
 
        	fsb =  new FetchStreamBytes(MEDIA_URL, STREAM_URL, this);
-        t = new Thread(fsb);
-        t.start();
+        fsbThread = new Thread(fsb);
+        fsbThread.start();
         media = null;
+        
+        //metadataThread = new Thread(metadataUpdate);
+        //metadataThread.start();
        
         try {
             Thread.sleep(DELAY_TIME);
@@ -291,65 +392,5 @@ public class PlayerController implements Initializable {
                 }
             }
         });
-    }
-    
-    /**
-     * Open a file chooser for select a path to save a file
-     * 
-     * @return String
-     */
-    public String saveFile(){
-        FileChooser chooser = new FileChooser();
-        chooser.setTitle("Guardar respaldo");
-        chooser.setInitialFileName("Respaldo.mp3");
-              
-        try {
-            String a = chooser.showSaveDialog(null).getAbsolutePath();
-            return a;
-        }catch(Exception e) {
-            Logger.getLogger(PlayerController.class.getName()).log(Level.SEVERE, null, e);
-        }
-        
-        return null;
-    }
-    
-    /**
-     * Get the backup file that will be open
-     */
-    public void getFile(){
-        FileChooser chooser = new FileChooser();
-        chooser.setTitle("Abrir respaldo");
-                      
-        try {
-            rescueFile = chooser.showOpenDialog(null).getAbsoluteFile();
-        }catch(Exception e) {
-            Logger.getLogger(PlayerController.class.getName()).log(Level.SEVERE, null, e);
-            rescueFile = null;
-        }
-    }
-    
-    /**
-     * Open a URL and save it into a file 
-     */
-    public void saveUrl(String filename, String urlString) throws MalformedURLException, IOException {
-        BufferedInputStream in = null;
-        FileOutputStream fout = null;
-        
-        try {
-            in = new BufferedInputStream(new URL(urlString).openStream());
-            fout = new FileOutputStream(new File(filename));
-
-            byte data[] = new byte[1024];
-            int count;
-            while ((count = in.read(data, 0, 1024)) != -1) {
-                fout.write(data, 0, count);
-            }
-        }
-        finally {
-            if (in != null) 
-                in.close();
-            if (fout != null)
-                fout.close();
-        }
     }
 }
